@@ -1,0 +1,16 @@
+
+author: Ricardo SIGNES <rjbs@cpan.org>
+distribution_type: module
+generated_by: Module::Install version 0.55
+license: perl
+name: Object-Annotate
+no_index: 
+  directory: 
+    - inc
+    - t
+requires: 
+  Class::DBI: 0
+  Sub::Install: 0.03
+  UNIVERSAL::moniker: 0.01
+tests: " t/00-load.t t/basic.t t/pod-coverage.t t/pod.t"
+version: 0.01

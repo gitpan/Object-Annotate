@@ -1,0 +1,42 @@
+This file contains message digests of all files listed in MANIFEST,
+signed via the Module::Signature module, version 0.44.
+
+To verify the content in this distribution, first make sure you have
+Module::Signature installed, then type:
+
+    % cpansign -v
+
+It will check each file's integrity, as well as the signature's
+validity.  If "==> Signature verified OK! <==" is not displayed,
+the distribution may already have been compromised, and you should
+not run its Makefile.PL or Build.PL.
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+SHA1 b1458af77130cec237cae4ba92d3654bf5970bb4 MANIFEST
+SHA1 37943bef83874a09162619ea80a2617856674872 META.yml
+SHA1 1dc24a208f3b5b6fbf80ac4053d9fff1e3fe839c Makefile.PL
+SHA1 0380b302fdfcfd94a594f0bcf5891dd021ee3305 inc/Module/Install.pm
+SHA1 16d4fdd55a1b4955a9771c8ab08188863542b54b inc/Module/Install/Base.pm
+SHA1 4a2263c2997b08c67c3301eca12e3f970bf04519 inc/Module/Install/Can.pm
+SHA1 3930ab93ab925f05e435296368cd9f411feba105 inc/Module/Install/Fetch.pm
+SHA1 6151bda4379b06caa42a93f6c0a01ac396e36095 inc/Module/Install/Makefile.pm
+SHA1 2d9b0f166b86d1cd13498f102ed078127fc0dfc1 inc/Module/Install/Metadata.pm
+SHA1 7fca2b8960dfdaac9dc3b7c60a0e2d7ba1e6abaf inc/Module/Install/Win32.pm
+SHA1 3d1160675720854f45f100192b3ca0eb00c04ae1 inc/Module/Install/WriteAll.pm
+SHA1 ad6926cd848b0b3f5246161902b8b637385b2747 lib/Object/Annotate.pm
+SHA1 04b374db893c2f3b4965ceeb8b23a6020cb0e09f sql/pgsql.sql
+SHA1 0c4ce14616193103913178ff79a2ed47e1c2f1c9 sql/sqlite.sql
+SHA1 c761760681244151269cc81d16e67335c31eefbf t/00-load.t
+SHA1 bf040799b920389f4365f2230030e3035135dbeb t/OAUtil.pm
+SHA1 5ee49e16734fefa993afc94cbf0eea918c668e1f t/basic.t
+SHA1 838fbe7c6130f0149c6178e07eff72f24fd4139f t/pod-coverage.t
+SHA1 a27afcb58e341a2e3bbe5cacd3a1721bfcad28cb t/pod.t
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (Darwin)
+
+iD8DBQFD7dza5IEwYcR13KMRAiEMAKCTqiBVK/1fG5UY3sTZsRZGmhPSiACfWmlF
+1DWLnJ8yYWlYRQkXVl/ltNs=
+=nL57
+-----END PGP SIGNATURE-----
