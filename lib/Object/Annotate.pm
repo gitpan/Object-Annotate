@@ -9,27 +9,34 @@ Object::Annotate - mix in logging-to-database to objects
 
 =head1 VERSION
 
- $Id: /my/icg/annotate/trunk/lib/Object/Annotate.pm 18618 2006-02-11T12:38:11.249527Z rjbs  $
+ $Id: /my/icg/annotate/trunk/lib/Object/Annotate.pm 22351 2006-05-19T03:22:24.551612Z rjbs  $
 
-version 0.01
+version 0.020
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.020';
 
 use Carp ();
-use Sub::Install;
 use UNIVERSAL::moniker;
 
 =head1 SYNOPSIS
 
   package Your::Class;
-  use Object::Annotate { dsn => '...', table => 'notes' };
+  use Object::Annotate annotate => { dsn => '...', table => 'notes' };
 
   ...
 
   my $object = Your::Class->new( ... );
   $object->annotate({ event => "created", comment => "(as example)" });
+
+=head1 WARNING
+
+The interface described here is still in real flux.  Feedback is welcome!
+If, however, you rely on this interface for production code, and then upgrade
+this module blindly, you are likely to see things break.
+
+I will remove this warning when the interface is less likely to change.
 
 =head1 DESCRIPTION
 
@@ -52,8 +59,8 @@ accept the same arguments:
     table     - the table in which annotations are stored
     sequence  - if given, the Class::DBI table's primary key values comes from
                 this sequence; see L<Class::DBI> for more information
-    columns   - columns for the annotation table
 
+  columns   - columns for the annotation table
   obj_class - the class name to use for annotations for this class
               (defaults to Class->moniker, see UNIVERSAL::moniker)
   id_attr   - the object attribute to use for "id"; called as a method
@@ -70,20 +77,17 @@ my $current_suffix = 0;
 
 # The "id" column isn't here because we want it first, always.
 my %note_columns = (
-  mandatory => [ qw(class object_id note_time) ],
+  mandatory => [ qw(class object_id created) ],
   # I plan to use these values in the future. -- rjbs, 2006-01-13
   # default   => [ qw(event attr old_val new_val via comment expire_time) ],
   default   => [ qw(event attr old_val new_val via comment expire_time) ],
 );
 
-sub import {
-  my ($self, %arg) = @_;
-  my $caller = caller(0);
+use Sub::Exporter -setup => {
+  groups => { annotator => \&setup_class },
+};
 
-  $self->setup_class($caller, \%arg);
-}
-
-=head2 C< new >
+=head2 new
 
 You can use the C<new> method to create a singularity -- an object that can
 annotate as if it was of a class that used Object::Annotate, but is of its own
@@ -111,14 +115,14 @@ sub new {
 These methods are not provided by Object::Annotate, but are installed into
 classes that use Object::Annotate.
 
-=head2 C< annotation_class >
+=head2 annotations_class
 
-  my $annotation_class = Your::Class->annotation_class;
+  my $annotations_class = Your::Class->annotations_class;
 
 This method returns the name of the automatically constructed class that
 handles annotations for the class or object on which it is installed.
 
-=head2 C< annotate >
+=head2 annotate
 
   $object->annotate({
     event => 'update',
@@ -129,7 +133,7 @@ handles annotations for the class or object on which it is installed.
 
 This method creates an annotation for the object on which it is called.
 
-=head2 C< search_annotations >
+=head2 search_annotations
 
   # search all annotations for this class
   my @notes = Class->search_annotations({ event => 'explosion' });
@@ -144,17 +148,18 @@ the Class::DBI C<search> method.
 
 =head1 INTERNALS
 
-=head2 C< setup_class >
+=head2 setup_class
 
-  Object::Annotate->setup_class($target, \%arg);
+  Object::Annotate->setup_class('annotator', \%arg, \%col);
 
 This method does the heavy lifting needed to turn the class named by C<$target>
-into one that does annotation.
+into one that does annotation.  It is a group generator as described in
+L<Sub::Exporter>.
 
 =cut
 
 sub setup_class {
-  my ($self, $target, $arg) = @_;
+  my ($self, $name, $arg, $col) = @_;
 
   $arg->{db}{dsn}   ||= $self->default_dsn;
   $arg->{db}{table} ||= $self->default_table;
@@ -162,44 +167,40 @@ sub setup_class {
   $arg->{db}{user}  ||= $self->default_user;
   $arg->{db}{pass}  ||= $self->default_pass;
 
-  $arg->{sequence}  ||= $self->_default_sequence;
+  $arg->{db}{sequence} ||= $self->_default_sequence;
+
+  if ($arg->{noun} xor $arg->{verb}) {
+    Carp::croak 'you must supply either both or neither "noun" and "verb"';
+  } elsif (not ($arg->{noun} or $arg->{verb})) {
+    @$arg{qw(noun verb)} = qw(annotations annotate);
+  }
 
   my $class     = $self->class_for($arg);
-  my $obj_class = $arg->{obj_class} || $target->moniker;
 
-  Carp::croak "couldn't determine obj_class for $target" unless $obj_class;
+  my $obj_class = $arg->{obj_class};
   
   my %build_option = (
     obj_class => $obj_class,
     id_attr   => $arg->{id_attr} || 'id',
-  );
 
-  Sub::Install::install_sub({
-    code => sub { $class },
-    into => $target,
-    as   => 'annotation_class'
-  });
+    noun => $arg->{noun},
+    verb => $arg->{verb},
+  );
 
   my $annotator = $self->build_annotator({
     %build_option,
-    set_time  => (scalar $arg->{db}{dsn} =~ /SQLite/),
+    columns   => $arg->{columns},
+    set_time  => ($arg->{db}{dsn} && (scalar $arg->{db}{dsn} =~ /SQLite/)),
   });
 
-  Sub::Install::install_sub({
-    code => $annotator,
-    into => $target,
-    as   => 'annotate'
-  });
-
-  Sub::Install::install_sub({
-    code => $self->build_searcher(\%build_option),
-    into => $target,
-    as   => 'search_annotations'
-  });
+  my $return = {
+    "$arg->{noun}_class"  => sub { $class },
+    $arg->{verb}          => $annotator,
+    "search_$arg->{noun}" => $self->build_searcher(\%build_option),
+  };
 }
 
-
-=head2 C< class_for >
+=head2 class_for
 
   my $class = Object::Annotate->class_for(\%arg);
 
@@ -224,35 +225,45 @@ sub class_for {
   my $pass  = $arg->{db}{pass};
 
   # Try to find an already-constructed class.
-  my $class = exists $class_for->{ $dsn }
+  my $class = ! $arg->{extra_setup}
+           && exists $class_for->{ $dsn }
            && exists $class_for->{ $dsn }->{ $table }
            && $class_for->{ $dsn }->{ $table };
 
+  return $class if $class;
+
   # If we have no class built for this combination, build it.
-  $class ||= $self->construct_cdbi_class({
+  $class = $self->construct_cdbi_class({
     dsn      => $dsn,
     user     => $user,
     pass     => $pass,
     table    => $table,
     columns  => $arg->{columns},
-    sequence => $arg->{sequence},
+    sequence => $arg->{db}{sequence},
     base_class => $arg->{base_class},
   });
+
+  $arg->{extra_setup}->($class) if $arg->{extra_setup};
 
   return $class;
 }
 
-=head2 C< default_dsn >
+=head2 default_dsn
 
-=head2 C< default_table >
+=head2 default_table
 
-=head2 C< default_user >
+=head2 default_user
 
-=head2 C< default_pass >
+=head2 default_pass
 
 These methods return the default database settings to use if none is specified
 when importing Object::Annotate.  The built-in behavior is to return the
 OBJ_ANNOTATE_DSN, OBJ_ANNOTATE_TABLE, etc. environment variables.
+
+=head2 default_base_class
+
+This method returns the class from which the annotator subclass will inherit.
+It defaults to Class::DBI.
 
 =cut
 
@@ -260,10 +271,11 @@ sub default_dsn   { $ENV{OBJ_ANNOTATE_DSN};   }
 sub default_table { $ENV{OBJ_ANNOTATE_TABLE}; }
 sub default_user  { $ENV{OBJ_ANNOTATE_USER}; }
 sub default_pass  { $ENV{OBJ_ANNOTATE_PASS}; }
+sub default_base_class  { 'Class::DBI' }
 
 sub _default_sequence {  }
 
-=head2 C< construct_cdbi_class >
+=head2 construct_cdbi_class
 
   my $new_class = Object::Annotate->construct_cdbi_class(\%arg);
 
@@ -287,7 +299,7 @@ sub construct_cdbi_class {
   my $new_class
     = sprintf '%s::Construct::0x%08x', __PACKAGE__, ++$current_suffix;
 
-  $arg->{base_class} ||= 'Class::DBI';
+  $arg->{base_class} ||= $class->default_base_class;
 
   eval "require $arg->{base_class};" or die $@;
   do {
@@ -295,7 +307,10 @@ sub construct_cdbi_class {
     @{$new_class . '::ISA'} = $arg->{base_class};
   };
 
-  $new_class->connection($arg->{dsn}, $arg->{user}, $arg->{pass});
+  if ($arg->{dsn}) {
+    $new_class->connection($arg->{dsn}, $arg->{user}, $arg->{pass});
+  }
+
   $new_class->table($arg->{table});
 
   my @columns = @{ $note_columns{mandatory} };
@@ -308,10 +323,10 @@ sub construct_cdbi_class {
 
   $new_class->db_Main->{ AutoCommit } = 1;
 
-  return $class_for->{ $arg->{dsn} }->{ $arg->{table} } = $new_class;
+  return $class_for->{ $arg->{dsn} || '' }->{ $arg->{table} } = $new_class;
 }
 
-=head2 C< build_annotator >
+=head2 build_annotator
 
   my $code = Object::Annotate->build_annotator(\%arg);
 
@@ -323,7 +338,7 @@ It takes the following arguments:
   obj_class - the class name to use for this class's log entries
   id_attr   - the method to use to get object ids; if a scalar ref, 
               the dereferenced string is used as a constant
-  set_time  - if true, the note_time value will be created as the current time
+  set_time  - if true, the created value will be created as the current time
 
 =cut
 
@@ -334,10 +349,16 @@ sub build_annotator {
   my $id_attr   = $arg->{id_attr};
   my $set_time  = $arg->{set_time};
 
+  my @columns 
+    = $arg->{columns} ? @{ $arg->{columns} } : @{ $note_columns{default} };
+
+  my $noun      = $arg->{noun};
+
   my $annotator = sub {
     # This $arg purposefully shadows the previous; I don't want to enclose
     # those args. -- rjbs, 2006-01-05
     my ($self, $arg) = @_;
+    my $obj_class = $arg->{obj_class} || $self->moniker;
 
     my $id;
     if (ref $id_attr) {
@@ -347,30 +368,29 @@ sub build_annotator {
       Carp::croak "couldn't get id for $self via $id_attr" unless $id;
     }
 
-    # build up only those attributes we said, in %note_columns, we'd allow to
-    # be passed in manually
+    # build up only those attributes we declared
     my %attr;
-    for (@{ $note_columns{default} }) {
+    for (@columns) {
       next unless exists $arg->{$_};
       $attr{$_} = $arg->{$_};
     }
 
-    $attr{note_time} = time if $set_time;
+    $attr{created} = time if $set_time;
 
-    $self->annotation_class->create({
+    my $class_name_method = "$noun\_class";
+    my $request = $self->$class_name_method->create({
       class     => $obj_class,
       object_id => $id,
       %attr,
     });
 
-    # It's probably best to return nothing, for now. -- rjbs, 2006-01-05
-    return;
+    return $request;
   };
 
   return $annotator;
 }
 
-=head2 C< build_searcher >
+=head2 build_searcher
 
   my $code = Object::Annotate->build_searcher(\%arg);
 
@@ -390,9 +410,12 @@ sub build_searcher {
 
   my $obj_class = $arg->{obj_class};
   my $id_attr   = $arg->{id_attr};
+
+  my $noun      = $arg->{noun};
   
   my $searcher = sub {
     my ($self, $arg) = @_;
+    my $obj_class = $arg->{obj_class} || $self->moniker;
     $arg ||= {};
 
     my $id;
@@ -406,10 +429,10 @@ sub build_searcher {
     $arg->{class}     = $obj_class;
     $arg->{object_id} = $id if defined $id and not exists $arg->{object_id};
 
-    $self->annotation_class->search(%$arg);
+    my $class_name_method = "$noun\_class";
+    $self->$class_name_method->search(%$arg);
   }
 }
 
 '2. see footnote #1';
-
 
