@@ -9,13 +9,13 @@ Object::Annotate - mix in logging-to-database to objects
 
 =head1 VERSION
 
- $Id: /my/icg/annotate/trunk/lib/Object/Annotate.pm 22351 2006-05-19T03:22:24.551612Z rjbs  $
+ $Id$
 
-version 0.020
+version 0.021
 
 =cut
 
-our $VERSION = '0.020';
+our $VERSION = '0.021';
 
 use Carp ();
 use UNIVERSAL::moniker;
