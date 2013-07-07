@@ -1,6 +1,13 @@
-README for Object-Annotate
 
-Object::Annotate provides a mixin to give any object the ability to log extra
-data to a database using Class::DBI.
 
-Consult its POD for more information.
+This archive contains the distribution Object-Annotate,
+version 0.022:
+
+  mix in logging-to-database to objects (deprecated)
+
+This software is copyright (c) 2006 by Ricardo SIGNES.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+
