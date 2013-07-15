@@ -36,6 +36,7 @@
       },
       "test" : {
          "requires" : {
+            "DBD::SQLite" : "0",
             "DBI" : "0",
             "Fatal" : "0",
             "File::Find" : "0",
@@ -57,7 +58,7 @@
          "web" : "https://github.com/rjbs/Object-Annotate"
       }
    },
-   "version" : "0.022",
+   "version" : "0.023",
    "x_Dist_Zilla" : {
       "perl" : {
          "version" : "5.019001"
@@ -228,6 +229,17 @@
             "class" : "Dist::Zilla::Plugin::Git::Push",
             "name" : "@RJBS/@Git/Push",
             "version" : "2.014"
+         },
+         {
+            "class" : "Dist::Zilla::Plugin::Prereqs",
+            "config" : {
+               "Dist::Zilla::Plugin::Prereqs" : {
+                  "phase" : "test",
+                  "type" : "requires"
+               }
+            },
+            "name" : "Prereqs",
+            "version" : "4.300036"
          },
          {
             "class" : "Dist::Zilla::Plugin::FinderCode",

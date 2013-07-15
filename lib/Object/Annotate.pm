@@ -2,7 +2,7 @@ use warnings;
 use strict;
 package Object::Annotate;
 {
-  $Object::Annotate::VERSION = '0.022';
+  $Object::Annotate::VERSION = '0.023';
 }
 # ABSTRACT: mix in logging-to-database to objects (deprecated)
 
@@ -255,7 +255,7 @@ Object::Annotate - mix in logging-to-database to objects (deprecated)
 
 =head1 VERSION
 
-version 0.022
+version 0.023
 
 =head1 SYNOPSIS
 

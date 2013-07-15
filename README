@@ -1,7 +1,7 @@
 
 
 This archive contains the distribution Object-Annotate,
-version 0.022:
+version 0.023:
 
   mix in logging-to-database to objects (deprecated)
 

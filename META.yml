@@ -3,6 +3,7 @@ abstract: 'mix in logging-to-database to objects (deprecated)'
 author:
   - 'Ricardo SIGNES <rjbs@cpan.org>'
 build_requires:
+  DBD::SQLite: 0
   DBI: 0
   Fatal: 0
   File::Find: 0
@@ -28,7 +29,7 @@ resources:
   bugtracker: https://github.com/rjbs/Object-Annotate/issues
   homepage: https://github.com/rjbs/Object-Annotate
   repository: https://github.com/rjbs/Object-Annotate.git
-version: 0.022
+version: 0.023
 x_Dist_Zilla:
   perl:
     version: 5.019001
@@ -165,6 +166,14 @@ x_Dist_Zilla:
       class: Dist::Zilla::Plugin::Git::Push
       name: '@RJBS/@Git/Push'
       version: 2.014
+    -
+      class: Dist::Zilla::Plugin::Prereqs
+      config:
+        Dist::Zilla::Plugin::Prereqs:
+          phase: test
+          type: requires
+      name: Prereqs
+      version: 4.300036
     -
       class: Dist::Zilla::Plugin::FinderCode
       name: ':InstallModules'

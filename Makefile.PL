@@ -27,6 +27,7 @@ my %WriteMakefileArgs = (
     "warnings" => 0
   },
   "TEST_REQUIRES" => {
+    "DBD::SQLite" => 0,
     "DBI" => 0,
     "Fatal" => 0,
     "File::Find" => 0,
@@ -34,7 +35,7 @@ my %WriteMakefileArgs = (
     "Test::More" => "0.96",
     "lib" => 0
   },
-  "VERSION" => "0.022",
+  "VERSION" => "0.023",
   "test" => {
     "TESTS" => "t/*.t"
   }
