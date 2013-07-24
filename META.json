@@ -28,6 +28,7 @@
       "runtime" : {
          "requires" : {
             "Carp" : "0",
+            "Class::DBI" : "0",
             "Sub::Exporter" : "0.92",
             "UNIVERSAL::moniker" : "0.01",
             "strict" : "0",
@@ -58,10 +59,10 @@
          "web" : "https://github.com/rjbs/Object-Annotate"
       }
    },
-   "version" : "0.023",
+   "version" : "0.024",
    "x_Dist_Zilla" : {
       "perl" : {
-         "version" : "5.019001"
+         "version" : "5.019002"
       },
       "plugins" : [
          {
@@ -208,7 +209,7 @@
          {
             "class" : "Dist::Zilla::Plugin::GithubMeta",
             "name" : "@RJBS/GithubMeta",
-            "version" : "0.28"
+            "version" : "0.30"
          },
          {
             "class" : "Dist::Zilla::Plugin::Git::Check",
@@ -234,11 +235,22 @@
             "class" : "Dist::Zilla::Plugin::Prereqs",
             "config" : {
                "Dist::Zilla::Plugin::Prereqs" : {
-                  "phase" : "test",
+                  "phase" : "runtime",
                   "type" : "requires"
                }
             },
             "name" : "Prereqs",
+            "version" : "4.300036"
+         },
+         {
+            "class" : "Dist::Zilla::Plugin::Prereqs",
+            "config" : {
+               "Dist::Zilla::Plugin::Prereqs" : {
+                  "phase" : "test",
+                  "type" : "requires"
+               }
+            },
+            "name" : "TR",
             "version" : "4.300036"
          },
          {

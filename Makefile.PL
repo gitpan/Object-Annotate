@@ -20,22 +20,23 @@ my %WriteMakefileArgs = (
   "LICENSE" => "perl",
   "NAME" => "Object::Annotate",
   "PREREQ_PM" => {
-    "Carp" => 0,
+    "Carp" => "0",
+    "Class::DBI" => "0",
     "Sub::Exporter" => "0.92",
     "UNIVERSAL::moniker" => "0.01",
-    "strict" => 0,
-    "warnings" => 0
+    "strict" => "0",
+    "warnings" => "0"
   },
   "TEST_REQUIRES" => {
-    "DBD::SQLite" => 0,
-    "DBI" => 0,
-    "Fatal" => 0,
-    "File::Find" => 0,
-    "File::Temp" => 0,
+    "DBD::SQLite" => "0",
+    "DBI" => "0",
+    "Fatal" => "0",
+    "File::Find" => "0",
+    "File::Temp" => "0",
     "Test::More" => "0.96",
-    "lib" => 0
+    "lib" => "0"
   },
-  "VERSION" => "0.023",
+  "VERSION" => "0.024",
   "test" => {
     "TESTS" => "t/*.t"
   }
